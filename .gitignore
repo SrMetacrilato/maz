@@ -30,3 +30,8 @@
 *.exe
 *.out
 *.app
+.vs/
+maz-test/x64/Debug/maz-test.Build.CppClean.log
+maz-test/x64/
+packages/
+x64/
