@@ -136,6 +136,7 @@
     <ClInclude Include="maz\measure.h" />
     <ClInclude Include="maz\operation_defs.h" />
     <ClInclude Include="maz\random.h" />
+    <ClInclude Include="maz\tensor.h" />
     <ClInclude Include="maz\vector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

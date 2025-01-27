@@ -24,5 +24,8 @@
     <ClInclude Include="maz\dependencies.h">
       <Filter>maz</Filter>
     </ClInclude>
+    <ClInclude Include="maz\tensor.h">
+      <Filter>maz</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
