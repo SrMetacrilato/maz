@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-namespace engine::math
+namespace maz
 {
 	template<typename T>
 	concept arithmetic = std::integral<T> or std::floating_point<T>;

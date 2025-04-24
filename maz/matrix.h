@@ -1,287 +1,166 @@
 #pragma once
 #include <array>
 #include "operation_defs.h"
+#include "vector.h"
+#include <span>
 
-namespace engine::math
+namespace maz
 {
-	namespace detail
+	template<typename T, size_t Width, size_t Height>
+	class matrix
 	{
-		template<typename T, int Dim>
-		class vector_data
-		{
-		private:
-			std::array<T, Dim> m_values;
-
-		public:
-			vector_data()
-			{
-
-			}
-
-			template<typename... Params>
-			vector_data(Params... i_params)
-				: m_values({ i_params... })
-			{
-
-			}
-
-			const T& get(int i_dimension) const
-			{
-				return m_values[i_dimension];
-			}
-
-			T& get(int i_dimension)
-			{
-				return m_values[i_dimension];
-			}
-		};
-
-		template<typename T>
-		class vector_data<T, 2>
-		{
-		public:
-			T x;
-			T y;
-
-		public:
-			vector_data()
-			{
-
-			}
-
-			vector_data(const T& i_x, const T& i_y)
-				: x(i_x)
-				, y(i_y)
-			{
-
-			}
-
-			const T& get(int i_dimension) const
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					return x;
-				default:
-					return y;
-				}
-			}
-
-			T& get(int i_dimension)
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					return x;
-				default:
-					return y;
-				}
-			}
-		};
-
-		template<typename T>
-		class vector_data<T, 3>
-		{
-		public:
-			T x;
-			T y;
-			T z;
-
-		public:
-			vector_data()
-			{
-
-			}
-
-			vector_data(const T& i_x, const T& i_y, const T& i_z)
-				: x(i_x)
-				, y(i_y)
-				, z(i_z)
-			{
-
-			}
-
-			const T& get(int i_dimension) const
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					return x;
-				case 1:
-					return y;
-				case 2:
-				default:
-					return z;
-				}
-			}
-
-			T& get(int i_dimension)
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					return x;
-				case 1:
-					return y;
-				case 2:
-				default:
-					return z;
-				}
-			}
-
-			
-		};
-	}
-
-	
-	template<typename T, int Dim>
-	class vector: public detail::vector_data<T, Dim>
-	{
-
 	public:
-		vector()
-		{
+		//template<typename... R>
+		//requires (sizeof...(R) == Height)
+		//static matrix<T, Width, Height> fromRows(R... i_rows)
+		//{
+		//
+		//}
 
-		}
-
-		template<typename... Params>
-		requires (sizeof...(Params) == Dim)
-		vector(Params... i_params)
-			: detail::vector_data<T, Dim>(i_params...)
+		template<typename R>
+		requires (std::is_convertible_v<R, std::span<const T, Width>>)
+		static matrix<T, Width, Height> fromRows(std::array<R, Height> i_rows)
 		{
-			//C++ 14 osea anticuado
-			//static_assert(sizeof...(i_params) == Dim, "El numero de parametros no encaja");
-		}
-
-		const T& operator[] (int i_dimension) const
-		{
-			return this->get(i_dimension);
-		}
-
-		T& operator[] (int i_dimension)
-		{
-			return this->get(i_dimension);
-		}
-
-		template<typename T2>
-		requires sum::constraint<T, T2>
-		auto operator+ (const vector<T2, Dim>& i_other) const
-		{
-			using R = sum::type<T, T2>;
-			vector<R, Dim> result;
-			for (int i = 0; i < Dim; i++)
+			matrix<T, Width, Height> result;
+			size_t i = 0;
+			for (const R& row : i_rows)
 			{
-				result[i] = this->get(i) + i_other[i];
+				std::span<const T, Width> rowView = row;
+				size_t j = 0;
+				for (j = 0; j < Width; ++j)
+				{
+					result.m_data[i][j] = rowView[j];
+				}
+				++i;
 			}
 			return result;
 		}
 
-		template<typename T2>
-		requires std::is_same<sum::type<T, T2>, T>::value
-		void operator+= (const vector<T2, Dim>& i_other)
+		template<typename... R>
+		requires (sizeof...(R) == Width * Height)
+		static matrix<T, Width, Height> fromRows(R... i_valuesInRows)
 		{
-			for (int i = 0; i < Dim; i++)
+			std::array<T, Width* Height> arr = std::array<T, Width* Height> { std::forward<R>(i_valuesInRows)...};
+			matrix<T, Width, Height> result;
+			size_t i = 0;
+			for (i = 0; i < Height; ++i)
 			{
-				(*this)[i] = this->get(i) + i_other[i];
-			}
-		}
-
-		template<typename T2>
-		requires diff::constraint<T, T2>
-		auto operator- (const vector<T2, Dim>& i_other) const
-		{
-			using R = diff::type<T, T2>;
-			vector<R, Dim> result;
-			for (int i = 0; i < Dim; i++)
-			{
-				result[i] = this->get(i) - i_other[i];
+				size_t j = 0;
+				for (j = 0; j < Width; ++j)
+				{
+					result.m_data[i][j] = arr[i * Width + j];
+				}
 			}
 			return result;
 		}
 
-		auto operator- () const
+		template<typename... R>
+			requires (sizeof...(R) == Width * Height)
+		static matrix<T, Width, Height> fromColumns(R... i_valuesInColumns)
 		{
-			vector<T, Dim> result;
-			for (int i = 0; i < Dim; i++)
-			{
-				result[i] = -this->get(i);
-			}
-			return result;
+			return transpose(fromRows(std::forward<R>(i_valuesInColumns)...));
 		}
 
-		template<typename T2>
-		requires mult::constraint<T, T2>
-		auto operator* (const T2& i_other) const
+		template<typename R>
+		requires (std::is_convertible_v<R, std::span<const T, Height>>)
+		static matrix<T, Width, Height> fromColumns(std::array<R, Width> i_rows)
 		{
-			using R = mult::type<T, T2>;
-			vector<R, Dim> result;
-			for (int i = 0; i < Dim; i++)
-			{
-				result[i] = this->get(i) * i_other;
-			}
-			return result;
-		}
-
-		template<typename T2>
-		requires div::constraint<T, T2>
-		auto operator/ (const T2& i_other) const
-		{
-			using R = div::type<T, T2>;
-			vector<R, Dim> result;
-			for (int i = 0; i < Dim; i++)
-			{
-				result[i] = this->get(i) / i_other;
-			}
-			return result;
-		}
-
-		auto lengthSq() const
-		{
-			return _lengthSq(std::make_index_sequence<Dim>{});
-		}
-
-		T length() const
-		{
-			return std::sqrt(_lengthSq(std::make_index_sequence<Dim>{}));
-		}
-
-		auto normalized() const
-		{
-			T len = length();
-			using R = div::type<T, T>;
-			vector<R, Dim> result;
-			for (size_t i = 0; i < Dim; ++i)
-			{
-				result[i] = this->get(i) / len;
-			}
-			return result;
-		}
-
-	private:
-		template<size_t... Indices>
-		auto _lengthSq(std::index_sequence<Indices...>) const
-		{
-			return ((this->get(Indices) * this->get(Indices)) + ...);
+			return transpose(fromRows(std::move(i_rows)));
 		}
 
 		
+		inline const T& get(size_t i_row, size_t i_col) const
+		{
+			return m_data[i_row][i_col];
+		}
 
+		inline void set(size_t i_row, size_t i_col, T i_value)
+		{
+			m_data[i_row][i_col] = std::move(i_value);
+		}
+		
+
+	private:
+
+		std::array<std::array<T, Width>, Height> m_data;
 	};
+
+	template<typename T, size_t Width, size_t Height>
+	matrix<T, Width - 1, Height - 1> cofactor(const matrix<T, Width, Height>& i_matrix, size_t i_row, size_t i_column)
+	{
+		matrix<T, Width - 1, Height - 1> result;
+		size_t effectiveRow = 0;
+		for (size_t row = 0; row < Height; ++row)
+		{
+			if (row != i_row)
+			{
+				size_t effectiveCol = 0;
+				for (size_t col = 0; col < Width; ++col)
+				{
+					if (col != i_column)
+					{
+						result.set(effectiveRow, effectiveCol, i_matrix.get(row, col));
+						effectiveCol++;
+					}
+				}
+				effectiveRow++;
+			}
+		}
+
+		return result;
+	}
+
+
+	
 
 	namespace detail
 	{
-		template<typename T, typename... Params>
-		vector<T, sizeof...(Params) + 1> create(T i_p1, Params... i_params)
+		template<typename T, size_t... Index>
+		inline auto determinant(const matrix<T, 2, 2>& i_matrix, std::index_sequence<Index...>)
 		{
-			return vector<T, sizeof...(Params) + 1>(i_p1, i_params...);
+			return i_matrix.get(0, 0) * i_matrix.get(1, 1) - i_matrix.get(0, 1) * i_matrix.get(1, 0);
+		}
+
+		template<typename T, size_t... Index>
+		inline auto determinant(const matrix<T, 3, 3>& i_matrix, std::index_sequence<Index...>)
+		{
+			return	(i_matrix.get(0, 0) * i_matrix.get(1, 1) * i_matrix.get(2, 2)
+				+ i_matrix.get(0, 1) * i_matrix.get(1, 2) * i_matrix.get(2, 0)
+				+ i_matrix.get(0, 2) * i_matrix.get(1, 0) * i_matrix.get(2, 1))
+				-
+				(i_matrix.get(0, 2) * i_matrix.get(1, 1) * i_matrix.get(2, 0)
+				+ i_matrix.get(0, 1) * i_matrix.get(1, 0) * i_matrix.get(2, 2)
+				+ i_matrix.get(0, 0) * i_matrix.get(1, 2) * i_matrix.get(2, 1));
+		}
+
+		template<typename T, size_t Width, size_t... Index>
+		inline auto determinant(const matrix<T, Width, Width>& i_matrix, std::index_sequence<Index...>)
+		{
+			return
+				((i_matrix.get(0, Index) * detail::determinant(cofactor(i_matrix, 0, Index), std::make_index_sequence<Width - 1>()) * (std::pow(- 1.0, Index)))
+				+
+				...);
 		}
 	}
 
-	template<typename T, typename T2>
-	auto cross(const detail::vector_data<T, 3>& i_left, const detail::vector_data<T2, 3>& i_right)
+	template<typename T, size_t Width>
+	auto determinant(const matrix<T, Width, Width>& i_matrix)
 	{
-		return detail::create(i_left.y * i_right.z - i_left.z * i_right.y, i_left.z * i_right.x - i_left.x * i_right.z, i_left.x * i_right.y - i_left.y * i_right.x);
+		return detail::determinant(i_matrix, std::make_index_sequence<Width>());
 	}
 
+	template<typename T, size_t Width, size_t Height>
+	matrix<T, Height, Width> transpose(const matrix<T, Width, Height>& i_matrix)
+	{
+		matrix<T, Height, Width> result;
+		for (size_t i = 0; i < Height; ++i)
+		{
+			for (size_t j = 0; j < Width; ++j)
+			{
+				result.set(i, j, i_matrix.get(j, i));
+			}
+		}
+		return result;
+	}
 	
 }

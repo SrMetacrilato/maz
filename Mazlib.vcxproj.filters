@@ -15,9 +15,6 @@
     <ClInclude Include="maz\operation_defs.h">
       <Filter>maz</Filter>
     </ClInclude>
-    <ClInclude Include="maz\random.h">
-      <Filter>maz</Filter>
-    </ClInclude>
     <ClInclude Include="maz\vector.h">
       <Filter>maz</Filter>
     </ClInclude>
@@ -25,6 +22,18 @@
       <Filter>maz</Filter>
     </ClInclude>
     <ClInclude Include="maz\tensor.h">
+      <Filter>maz</Filter>
+    </ClInclude>
+    <ClInclude Include="maz\shapes.h">
+      <Filter>maz</Filter>
+    </ClInclude>
+    <ClInclude Include="maz\operations.h">
+      <Filter>maz</Filter>
+    </ClInclude>
+    <ClInclude Include="maz\collision.h">
+      <Filter>maz</Filter>
+    </ClInclude>
+    <ClInclude Include="maz\surface.h">
       <Filter>maz</Filter>
     </ClInclude>
   </ItemGroup>

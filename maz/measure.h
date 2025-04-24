@@ -1,6 +1,7 @@
 #pragma once
+#include <ratio>
 
-namespace engine::math
+namespace maz
 {
 	//Magnitud -> distancia 
 	//Unidad -> metros
@@ -98,7 +99,7 @@ namespace engine::math
 		requires div::constraint<T, T2>
 		inline auto operator/ (measure<M2, T2> i_other) const
 		{
-			using T3 = engine::math::div::type<T, T2>;
+			using T3 = maz::div::type<T, T2>;
 			measure<magnitude<M::Exponents - M2::Exponents>, T3> result = m_valueInSI / i_other.internalValueInSI();
 			return result;
 		}
@@ -107,7 +108,7 @@ namespace engine::math
 		requires mult::constraint<T, T2>
 		inline auto operator* (measure<M2, T2> i_other) const
 		{
-			using T3 = engine::math::mult::type<T, T2>;
+			using T3 = maz::mult::type<T, T2>;
 			measure<magnitude<M::Exponents + M2::Exponents>, T3> result = m_valueInSI * i_other.internalValueInSI();
 			return result;
 		}
@@ -116,7 +117,7 @@ namespace engine::math
 		requires arithmetic<T2> && div::constraint<T, T2>
 		inline auto operator/ (const T2& i_literal) const
 		{
-			using T3 = engine::math::div::type<T, T2>;
+			using T3 = maz::div::type<T, T2>;
 			measure<M, T3> result = m_valueInSI / i_literal;
 			return result;
 		}
@@ -125,7 +126,7 @@ namespace engine::math
 		requires arithmetic<T2>&& mult::constraint<T, T2>
 		inline auto operator* (const T2& i_literal) const
 		{
-			using T3 = engine::math::mult::type<T, T2>;
+			using T3 = maz::mult::type<T, T2>;
 			measure<M, T3> result = m_valueInSI * i_literal;
 			return result;
 		}
@@ -134,7 +135,7 @@ namespace engine::math
 		requires sum::constraint<T, T2>
 		inline auto operator+ (const measure<M, T2>& i_other) const
 		{
-			using T3 = engine::math::sum::type<T, T2>;
+			using T3 = maz::sum::type<T, T2>;
 			measure<magnitude<M::Exponents>, T3> result = m_valueInSI + i_other.internalValueInSI();
 			return result;
 		}
@@ -151,7 +152,7 @@ namespace engine::math
 		requires diff::constraint<T, T2>
 		inline auto operator- (const measure<M, T2>& i_other) const
 		{
-			using T3 = engine::math::sum::type<T, T2>;
+			using T3 = maz::sum::type<T, T2>;
 			measure<magnitude<M::Exponents>, T3> result = m_valueInSI - i_other.internalValueInSI();
 			return result;
 		}
@@ -214,7 +215,7 @@ namespace engine::math
 
 		inline auto sqrt() const
 		{
-			using T3 = engine::math::div::type<T, T>;
+			using T3 = maz::div::type<T, T>;
 			measure<magnitude<M::Exponents / 2>, T3> result = std::sqrt(m_valueInSI);
 			return result;
 		}
@@ -301,6 +302,10 @@ namespace engine::math
 	using acceleration_mag = magnitude < std::array < int, k_numUnits>{1, -2, 0} > ;
 	using angular_acceleration_mag = magnitude < std::array < int, k_numUnits>{0, -2, 0} > ;
 	using frequency_acceleration_mag = magnitude < std::array < int, k_numUnits>{0, -2, 0} > ;
+	using length2_mag = magnitude < std::array<int, k_numUnits>{2} > ;
+	using area_mag = length2_mag;
+	using length3_mag = magnitude < std::array<int, k_numUnits>{3} > ;
+	using volume_mag = length3_mag;
 
 	//Custom basic ones
 	//template<int e1, int e2 = 0, int e3 = 0, int e4 = 0, int e5 = 0, int e6 = 0, int e7 = 0, int e8 = 0, int e9 = 0, int e10 = 0>
@@ -343,13 +348,18 @@ namespace engine::math
 	using kelvin = unit<temperature_mag, std::ratio<1>>;
 
 	//Rotation
-	using circle = unit<rotation_mag, std::ratio<1>>;
+	using revolution = unit<rotation_mag, std::ratio<1>>;
 	using radian = unit<rotation_mag, std::ratio<10000000, 62831853>>;
 	using degree = unit<rotation_mag, std::ratio<1, 360>>;
 
 	//===================================
 	// Compound Units
 	//===================================
+
+	//Distance only
+	using meters2 = unit<length2_mag, std::ratio<1>>;
+	using meters3 = unit<length3_mag, std::ratio<1>>;
+
 
 	//velocity
 	using metersxsecond = unit<velocity_mag, std::ratio_divide<meters::ratio_t, seconds::ratio_t>>;
@@ -360,7 +370,7 @@ namespace engine::math
 	using metersxsecond2 = unit<acceleration_mag, std::ratio_divide<metersxsecond::ratio_t, seconds::ratio_t>>;
 
 	//angular velocity
-	using hertz = unit<frequency_mag, std::ratio_divide<circle::ratio_t, seconds::ratio_t>>;
+	using hertz = unit<frequency_mag, std::ratio_divide<revolution::ratio_t, seconds::ratio_t>>;
 	using radianxsecond = unit<angular_velocity_mag, std::ratio_divide<radian::ratio_t, seconds::ratio_t>>;
 	using degreesxsecond = unit<angular_velocity_mag, std::ratio_divide<degree::ratio_t, seconds::ratio_t>>;
 
@@ -369,20 +379,24 @@ namespace engine::math
 	using radianxsecond2 = unit<angular_acceleration_mag, std::ratio_divide<radianxsecond::ratio_t, seconds::ratio_t>>;
 	using degreesxsecond2 = unit<angular_acceleration_mag, std::ratio_divide<degreesxsecond::ratio_t, seconds::ratio_t>>;
 
-	//===================================
-	// Measures
-	//===================================
-	using ratio = measure<ratio_mag, double>;
-	using length = measure<length_mag, double>;
-	using time = measure<time_mag, double>;
-	using velocity = measure<velocity_mag, double>;
-	using acceleration = measure<acceleration_mag, double>;
-	using temperature = measure<temperature_mag, double>;
-	using angle = measure<rotation_mag, double>;
-	using angular_velocity = measure<angular_velocity_mag, double>;
-	using angular_acceleration = measure<angular_acceleration_mag, double>;
-	using frequency = measure<frequency_mag, double>;
-
+	namespace ms
+	{
+		//===================================
+		// Measures
+		//===================================
+		using ratio = measure<ratio_mag, double>;
+		using length = measure<length_mag, double>;
+		using area = measure<area_mag, double>;
+		using volume = measure<volume_mag, double>;
+		using time = measure<time_mag, double>;
+		using velocity = measure<velocity_mag, double>;
+		using acceleration = measure<acceleration_mag, double>;
+		using temperature = measure<temperature_mag, double>;
+		using angle = measure<rotation_mag, double>;
+		using angular_velocity = measure<angular_velocity_mag, double>;
+		using angular_acceleration = measure<angular_acceleration_mag, double>;
+		using frequency = measure<frequency_mag, double>;
+	}
 
 	//===================================
 	// Typed numbers
@@ -511,140 +525,163 @@ namespace engine::math
 
 }
 
-inline engine::math::length operator"" _cm(long double i_value)
+inline maz::ms::length operator"" _cm(long double i_value)
 {
-	return engine::math::centimeters::create<double>(i_value);
+	return maz::centimeters::create<double>(i_value);
 }
 
-inline engine::math::length operator"" _m(long double i_value)
+inline maz::ms::length operator"" _m(long double i_value)
 {
-	return engine::math::meters::create<double>(i_value);
+	return maz::meters::create<double>(i_value);
 }
 
-inline engine::math::length operator"" _km(long double i_value)
+inline maz::ms::area operator"" _m2(long double i_value)
 {
-	return engine::math::kilometers::create<double>(i_value);
+	return maz::meters2::create<double>(i_value);
 }
 
-inline engine::math::time operator"" _s(long double i_value)
+inline maz::ms::volume operator"" _m3(long double i_value)
 {
-	return engine::math::seconds::create<double>(i_value);
+	return maz::meters3::create<double>(i_value);
 }
 
-inline engine::math::time operator"" _ms(long double i_value)
+inline maz::ms::length operator"" _km(long double i_value)
 {
-	return engine::math::milliseconds::create<double>(i_value);
+	return maz::kilometers::create<double>(i_value);
 }
 
-inline engine::math::ratio operator"" _pct(long double i_value)
+inline maz::ms::time operator"" _s(long double i_value)
 {
-	return engine::math::percent::create<double>(i_value);
+	return maz::seconds::create<double>(i_value);
 }
 
-inline engine::math::ratio operator"" _percent(long double i_value)
+inline maz::ms::time operator"" _ms(long double i_value)
 {
-	return engine::math::percent::create<double>(i_value);
+	return maz::milliseconds::create<double>(i_value);
 }
 
-inline engine::math::ratio operator"" _ppo(long double i_value)
+inline maz::ms::ratio operator"" _pct(long double i_value)
 {
-	return engine::math::perone::create<double>(i_value);
+	return maz::percent::create<double>(i_value);
 }
 
-inline engine::math::velocity operator"" _m_s(long double i_value)
+inline maz::ms::ratio operator"" _percent(long double i_value)
 {
-	return engine::math::metersxsecond::create<double>(i_value);
+	return maz::percent::create<double>(i_value);
 }
 
-inline engine::math::acceleration operator"" _m_s2(long double i_value)
+inline maz::ms::ratio operator"" _ppo(long double i_value)
 {
-	return engine::math::metersxsecond2::create<double>(i_value);
+	return maz::perone::create<double>(i_value);
 }
 
-inline engine::math::velocity operator"" _km_h(long double i_value)
+inline maz::ms::velocity operator"" _m_s(long double i_value)
 {
-	return engine::math::kilometersxhour::create<double>(i_value);
+	return maz::metersxsecond::create<double>(i_value);
 }
 
-inline engine::math::angle operator"" _rad(long double i_value)
+inline maz::ms::acceleration operator"" _m_s2(long double i_value)
 {
-	return engine::math::radian::create<double>(i_value);
+	return maz::metersxsecond2::create<double>(i_value);
 }
 
-inline engine::math::angle operator"" _deg(long double i_value)
+inline maz::ms::velocity operator"" _km_h(long double i_value)
 {
-	return engine::math::degree::create<double>(i_value);
+	return maz::kilometersxhour::create<double>(i_value);
 }
 
-inline engine::math::angular_velocity operator"" _rad_s(long double i_value)
+inline maz::ms::angle operator"" _rad(long double i_value)
 {
-	return engine::math::radianxsecond::create<double>(i_value);
+	return maz::radian::create<double>(i_value);
 }
 
-inline engine::math::angular_velocity operator"" _deg_s(long double i_value)
+inline maz::ms::angle operator"" _deg(long double i_value)
 {
-	return engine::math::degreesxsecond::create<double>(i_value);
+	return maz::degree::create<double>(i_value);
 }
 
-inline engine::math::angular_acceleration operator"" _rad_s2(long double i_value)
+inline maz::ms::angular_velocity operator"" _rad_s(long double i_value)
 {
-	return engine::math::radianxsecond2::create<double>(i_value);
+	return maz::radianxsecond::create<double>(i_value);
 }
 
-inline engine::math::angular_acceleration operator"" _deg_s2(long double i_value)
+inline maz::ms::angular_velocity operator"" _deg_s(long double i_value)
 {
-	return engine::math::degreesxsecond2::create<double>(i_value);
+	return maz::degreesxsecond::create<double>(i_value);
 }
 
-inline engine::math::frequency operator"" _hz(long double i_value)
+inline maz::ms::angular_acceleration operator"" _rad_s2(long double i_value)
 {
-	return engine::math::hertz::create<double>(i_value);
+	return maz::radianxsecond2::create<double>(i_value);
+}
+
+inline maz::ms::angular_acceleration operator"" _deg_s2(long double i_value)
+{
+	return maz::degreesxsecond2::create<double>(i_value);
+}
+
+inline maz::ms::frequency operator"" _hz(long double i_value)
+{
+	return maz::hertz::create<double>(i_value);
 }
 
 
-inline engine::math::ratio cos(const engine::math::angle& i_angle)
+inline maz::ms::ratio cos(const maz::ms::angle& i_angle)
 {
-	return engine::math::perone::create(cos(engine::math::radian::get(i_angle)));
+	return maz::perone::create(cos(maz::radian::get(i_angle)));
 }
 
-inline engine::math::ratio sin(const engine::math::angle& i_angle)
+inline maz::ms::ratio sin(const maz::ms::angle& i_angle)
 {
-	return engine::math::perone::create(sin(engine::math::radian::get(i_angle)));
+	return maz::perone::create(sin(maz::radian::get(i_angle)));
 }
 
-inline engine::math::ratio tan(const engine::math::angle& i_angle)
+inline maz::ms::ratio tan(const maz::ms::angle& i_angle)
 {
-	return engine::math::perone::create(tan(engine::math::radian::get(i_angle)));
+	return maz::perone::create(tan(maz::radian::get(i_angle)));
 }
 
-inline engine::math::angle atan(const engine::math::ratio& i_ratio)
+inline maz::ms::angle atan(const maz::ms::ratio& i_ratio)
 {
-	return engine::math::radian::create(atan(engine::math::perone::get(i_ratio)));
+	return maz::radian::create(atan(maz::perone::get(i_ratio)));
 }
 
 template<typename M, typename T, typename M2, typename T2>
-inline engine::math::angle atan2(const engine::math::measure<M, T>& _ArgA, const engine::math::measure<M2, T2>& _ArgB)
+inline maz::ms::angle atan2(const maz::measure<M, T>& _ArgA, const maz::measure<M2, T2>& _ArgB)
 {
-	return engine::math::radian::create(atan2(_ArgA.internalValueInSI(), _ArgB.internalValueInSI()));
+	return maz::radian::create(atan2(_ArgA.internalValueInSI(), _ArgB.internalValueInSI()));
 }
 
+#if false
 //unreal
 template<typename M, typename T>
-inline bool IsNearlyEqual(const engine::math::measure<M, T>& _ArgA, const engine::math::measure<M, T>& _ArgB)
+inline bool IsNearlyEqual(const maz::measure<M, T>& _ArgA, const maz::measure<M, T>& _ArgB)
 {
 	return FMath::IsNearlyEqual(_ArgA.internalValueInSI(), _ArgB.internalValueInSI());
 }
+#endif
 
 template<typename M, typename T>
-inline engine::math::measure<M, T> abs(const engine::math::measure<M, T>& _ArgA)
+inline maz::measure<M, T> abs(const maz::measure<M, T>& _ArgA)
 {
 	T v = abs(_ArgA.internalValueInSI());
-	return engine::math::measure<M, T>(v);
+	return maz::measure<M, T>(v);
+}
+
+namespace std
+{
+	template<typename M, typename T>
+	inline maz::measure<M, T> abs(const maz::measure<M, T>& _ArgA)
+	{
+		T v = abs(_ArgA.internalValueInSI());
+		return maz::measure<M, T>(v);
+	}
+
 }
 
 template<typename M, typename T>
 template<typename U, typename T2>
-inline void engine::math::measure<M, T>::operator= (const engine::math::measure_view<engine::math::measure<M, T>, U, T2>& i_other)
+inline void maz::measure<M, T>::operator= (const maz::measure_view<maz::measure<M, T>, U, T2>& i_other)
 {
 	*this = i_other.get();
 }
@@ -653,26 +690,26 @@ inline void engine::math::measure<M, T>::operator= (const engine::math::measure_
 namespace std
 {
 	template<typename M, typename T>
-	auto sqrt(const engine::math::measure<M, T>& i_value)
+	auto sqrt(const maz::measure<M, T>& i_value)
 	{
 		return i_value.sqrt();
 	}
 
 	template<typename M>
-	constexpr inline engine::math::measure<M, float> lerp(const engine::math::measure<M, float>& _ArgA, const engine::math::measure<M, float>& _ArgB, const float _ArgT) noexcept {
-		return engine::math::measure<M, float>(std::lerp(_ArgA.internalValueInSI(), _ArgB.internalValueInSI(), _ArgT));
+	constexpr inline maz::measure<M, float> lerp(const maz::measure<M, float>& _ArgA, const maz::measure<M, float>& _ArgB, const float _ArgT) noexcept {
+		return maz::measure<M, float>(std::lerp(_ArgA.internalValueInSI(), _ArgB.internalValueInSI(), _ArgT));
 	}
 
 	template<typename M>
-	constexpr inline engine::math::measure<M, double> lerp(const engine::math::measure<M, double>& _ArgA, const engine::math::measure<M, double>& _ArgB, const double _ArgT) noexcept {
-		return engine::math::measure<M, double>(std::lerp(_ArgA.internalValueInSI(), _ArgB.internalValueInSI(), _ArgT));
+	constexpr inline maz::measure<M, double> lerp(const maz::measure<M, double>& _ArgA, const maz::measure<M, double>& _ArgB, const double _ArgT) noexcept {
+		return maz::measure<M, double>(std::lerp(_ArgA.internalValueInSI(), _ArgB.internalValueInSI(), _ArgT));
 	}
 
 	template<typename M, typename T>
-	auto distance(const engine::math::measure<M, T>& i_left, const engine::math::measure<M, T>& i_right)
+	auto distance(const maz::measure<M, T>& i_left, const maz::measure<M, T>& i_right)
 	{
 		auto delta = i_left - i_right;
 		T v = abs(delta.internalValueInSI());
-		return engine::math::measure<M, T>(v);
+		return maz::measure<M, T>(v);
 	}
 }

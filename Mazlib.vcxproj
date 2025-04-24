@@ -131,11 +131,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="maz\collision.h" />
     <ClInclude Include="maz\dependencies.h" />
     <ClInclude Include="maz\matrix.h" />
     <ClInclude Include="maz\measure.h" />
+    <ClInclude Include="maz\operations.h" />
     <ClInclude Include="maz\operation_defs.h" />
-    <ClInclude Include="maz\random.h" />
+    <ClInclude Include="maz\shapes.h" />
+    <ClInclude Include="maz\surface.h" />
     <ClInclude Include="maz\tensor.h" />
     <ClInclude Include="maz\vector.h" />
   </ItemGroup>

@@ -1,8 +1,9 @@
 #pragma once
 #include <array>
+#include <span>
 #include "operation_defs.h"
 
-namespace engine::math
+namespace maz
 {
 	namespace detail
 	{
@@ -55,62 +56,10 @@ namespace engine::math
 			{
 				m_values[i_dimension] = i_value;
 			}
-		};
 
-		template<typename T>
-		class vector_data<T, 2>
-		{
-		public:
-			T x;
-			T y;
-
-		public:
-			vector_data()
+			operator std::span<const T, Dim>() const
 			{
-
-			}
-
-			vector_data(T i_x, T i_y)
-				: x(std::move(i_x))
-				, y(std::move(i_y))
-			{
-
-			}
-
-			const T& get(int i_dimension) const
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					return x;
-				default:
-					return y;
-				}
-			}
-
-			T& get(int i_dimension)
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					return x;
-				default:
-					return y;
-				}
-			}
-
-			template<typename T2>
-			void set(int i_dimension, const T2& i_value)
-			{
-				switch (i_dimension)
-				{
-				case 0:
-					x = i_value;
-					break;
-				default:
-					y = i_value;
-					break;
-				}
+				return m_values;
 			}
 		};
 
@@ -190,7 +139,10 @@ namespace engine::math
 				}
 			}
 
-			
+			operator std::span<const T, 3>() const
+			{
+				return std::span<const T, 3>(&x, 3);
+			}
 		};
 	}
 
@@ -314,7 +266,7 @@ namespace engine::math
 			return _lengthSq(std::make_index_sequence<Dim>{});
 		}
 
-		T length() const
+		auto length() const
 		{
 			return std::sqrt(_lengthSq(std::make_index_sequence<Dim>{}));
 		}
@@ -367,7 +319,7 @@ namespace engine::math
 
 		//unreal
 		template<typename T, int Dim, size_t... Indices>
-		inline bool _IsNearlyEqual(const engine::math::vector<T, Dim>& _ArgA, const engine::math::vector<T, Dim>& _ArgB, std::index_sequence<Indices...>)
+		inline bool _IsNearlyEqual(const maz::vector<T, Dim>& _ArgA, const maz::vector<T, Dim>& _ArgB, std::index_sequence<Indices...>)
 		{
 			return (IsNearlyEqual(_ArgA.get(Indices), _ArgB.get(Indices)) && ...);
 		}
@@ -421,16 +373,18 @@ namespace engine::math
 
 //unreal
 template<typename T, int Dim>
-inline bool IsNearlyEqual(const engine::math::vector<T, Dim>& _ArgA, const engine::math::vector<T, Dim>& _ArgB)
+inline bool IsNearlyEqual(const maz::vector<T, Dim>& _ArgA, const maz::vector<T, Dim>& _ArgB)
 {
-	return engine::math::detail::_IsNearlyEqual(_ArgA, _ArgB, std::make_index_sequence<Dim>{});
+	return maz::detail::_IsNearlyEqual(_ArgA, _ArgB, std::make_index_sequence<Dim>{});
 }
 
 namespace std
 {
 	template<typename T, int Dim>
-	auto distance(const engine::math::vector<T, Dim>& i_left, const engine::math::vector<T, Dim>& i_right)
+	auto distance(const maz::vector<T, Dim>& i_left, const maz::vector<T, Dim>& i_right)
 	{
 		return (i_right - i_left).length();
 	}
+
+
 }
