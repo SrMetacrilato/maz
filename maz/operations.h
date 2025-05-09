@@ -3,7 +3,7 @@
 namespace maz
 {
 	template<size_t Exp, typename T>
-	auto pow(const T& i_base)
+	constexpr auto pow(const T& i_base)
 	{
 		if constexpr (Exp == 0)
 		{

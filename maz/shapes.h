@@ -1,9 +1,19 @@
 #pragma once
 #include "vector.h"
 #include <numbers>
+#include <concepts>
 #include "operations.h"
+#include "surface.h"
+
 namespace maz
 {
+
+	template<typename T>
+	concept Shape = requires(T t)
+	{
+		t.X();
+	};
+
 	namespace detail
 	{
 		//template<typename T, size_t Dim>
@@ -100,4 +110,90 @@ namespace maz
 
 	template<typename T>
 	using sphere = n_sphere<T, 3>;
+
+
+	template<typename T, size_t Dim, size_t NumVertices>
+	class n_polygon
+	{
+
+		std::array<vector<T, Dim>, NumVertices> m_vertices;
+
+	public:
+		template<typename... Params>
+		requires (sizeof...(Params) == NumVertices)
+		n_polygon(Params... i_values)
+			: m_vertices( std::forward<Params>(i_values)...)
+		{
+
+		}
+
+		std::array<line<T, Dim>, NumVertices> axes() const
+		{
+			std::array<line<T, Dim>, NumVertices> result;
+			for (int i = 0; i < NumVertices; ++i)
+			{
+				result[i] = line<T, Dim>(m_vertices[i], { m_vertices[i] - m_vertices[(i + 1) % NumVertices] } );
+			}
+			return result;
+		}
+
+		inline const std::array<vector<T, Dim>, NumVertices> vertices() const
+		{
+			return m_vertices;
+		}
+	};
+
+	template<typename T, size_t Dim>
+	using n_triangle = n_polygon<T, Dim, 3>;
+
+	template<typename T>
+	using triangle3 = n_triangle<T, 3>;
+
+	template<typename T, size_t Dim>
+	class n_aabb
+	{
+		vector<T, Dim> tl;
+		vector<T, Dim> br;
+
+	public:
+		n_aabb() = default;
+
+		n_aabb(vector<T, Dim> i_tl, vector<T, Dim> i_br)
+			: tl(std::move(i_tl))
+			, br(std::move(i_br))
+		{
+
+		}
+
+		std::array<line<T, Dim>, Dim> axes() const
+		{
+			std::array<line<T, Dim>, Dim> result;
+			for (int i = 0; i < Dim; ++i)
+			{
+				vector<T, Dim> axis;
+				axis[i] = (T)1;
+				result[i] = line<T, Dim>(tl, { axis } );
+			}
+			return result;
+		}
+
+		inline const std::array<vector<T, Dim>, pow<Dim>(2)> vertices() const
+		{
+			std::array<vector<T, Dim>, pow<Dim>(2)> result;
+			constexpr auto s = pow<Dim>(2);
+			auto delta = br - tl;
+			for (int i = 0; i < s; ++i)
+			{
+				for (int j = 0; j < Dim; ++j)
+				{
+					auto should = (i >> j) % 2;
+					result[i][j] = delta[j] * should;
+				}
+			}
+			return result;
+		}
+	};
+
+	template<typename T>
+	using aabb = n_aabb<T, 2>;
 }

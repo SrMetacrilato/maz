@@ -1,4 +1,5 @@
 #include "pch.h"
+#include <unordered_set>
 #include "maz/tensor.h"
 #include "maz/vector.h"
 #include "maz/shapes.h"
@@ -95,4 +96,68 @@ TEST(MatrixTest, Determinant2) {
 
 	auto d = maz::determinant(m);
 	EXPECT_FLOAT_EQ(d, 84.f);
+}
+
+
+TEST(CollisionTest, SAT) {
+
+	maz::n_triangle<float, 2> tri(
+		maz::vector<float, 2>(0.0f, 0.0f),
+		maz::vector<float, 2>(0.0f, 1.0f),
+		maz::vector<float, 2>(1.0f, 0.0f)
+	);
+	maz::n_aabb<float, 2> box;
+	bool c = maz::collides(tri, box);
+}
+
+TEST(AABBTest, Vertices2D) {
+	maz::n_aabb<int, 2> box(maz::vector<int, 2>(0, 0), maz::vector<int, 2>(1, 2));
+	auto points = box.vertices();
+	//std::unordered_set<maz::vector<int, 2>> pointsSet(points.begin(), points.end());
+
+	auto contains = [&points](int x, int y)
+		{
+			for (const auto& v : points)
+			{
+				if (v.get(0) == x && v.get(1) == y)
+				{
+					return true;
+				}
+			}
+			return false;
+		};
+
+	EXPECT_TRUE(points.size() == 4);
+	EXPECT_TRUE(contains(0, 0));
+	EXPECT_TRUE(contains(0, 2));
+	EXPECT_TRUE(contains(1, 0));
+	EXPECT_TRUE(contains(1, 2));
+}
+
+TEST(AABBTest, Vertices3D) {
+	maz::n_aabb<int, 3> box(maz::vector<int, 3>(0, 0, 0), maz::vector<int, 3>(3, 1, 2));
+	auto points = box.vertices();
+	//std::unordered_set<maz::vector<int, 2>> pointsSet(points.begin(), points.end());
+
+	auto contains = [&points](int x, int y, int z)
+		{
+			for (const auto& v : points)
+			{
+				if (v.get(0) == x && v.get(1) == y && v.get(2) == z)
+				{
+					return true;
+				}
+			}
+			return false;
+		};
+
+	EXPECT_TRUE(points.size() == 8);
+	EXPECT_TRUE(contains(0, 0, 0));
+	EXPECT_TRUE(contains(0, 0, 2));
+	EXPECT_TRUE(contains(0, 1, 0));
+	EXPECT_TRUE(contains(0, 1, 2));
+	EXPECT_TRUE(contains(3, 0, 0));
+	EXPECT_TRUE(contains(3, 0, 2));
+	EXPECT_TRUE(contains(3, 1, 0));
+	EXPECT_TRUE(contains(3, 1, 2));
 }

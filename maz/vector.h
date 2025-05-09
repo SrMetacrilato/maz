@@ -15,6 +15,7 @@ namespace maz
 
 		public:
 			vector_data()
+				: m_values({ })
 			{
 
 			}
@@ -73,6 +74,9 @@ namespace maz
 
 		public:
 			vector_data()
+				: x((T)0)
+				, y((T)0)
+				, z((T)0)
 			{
 
 			}
@@ -329,6 +333,12 @@ namespace maz
 	inline auto cross(const detail::vector_data<T, 3>& i_left, const detail::vector_data<T2, 3>& i_right)
 	{
 		return detail::create(i_left.y * i_right.z - i_left.z * i_right.y, i_left.z * i_right.x - i_left.x * i_right.z, i_left.x * i_right.y - i_left.y * i_right.x);
+	}
+
+	template<typename T>
+	inline auto cross(const detail::vector_data<T, 2>& i_left)
+	{
+		return detail::create(-i_left.get(1), i_left.get(0));
 	}
 
 	template<typename T, typename T2, int Dim>
